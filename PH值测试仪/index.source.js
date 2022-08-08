@@ -191,7 +191,7 @@ Relay.prototype.write = function (addr, code, state) {
     }
     var cmd = [];
     if (code.indexOf("7") > -1) {//测量模式选择/0-PH,1-ORP
-        var commond = this.validate.crc16(addr + '060008' + state)
+        var commond = this.validate.crc16(addr + '06000800' + state)
         cmd.push(commond)
     }
     var validate = this.validate;
