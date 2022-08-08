@@ -13,9 +13,9 @@ function Relay(options, validate) {
 }
 
 //搜索地址
-Relay.prototype.find = function(startAddr, endAddr) {
-    if (startAddr && typeof startAddr === 'string')startAddr = parseInt(startAddr)
-    if (endAddr && typeof endAddr === 'string')endAddr = parseInt(endAddr)
+Relay.prototype.find = function (startAddr, endAddr) {
+    if (startAddr && typeof startAddr === 'string') startAddr = parseInt(startAddr)
+    if (endAddr && typeof endAddr === 'string') endAddr = parseInt(endAddr)
     var addr = startAddr || this.addrmin
     var end = endAddr || this.addrmax
     var commond = ''
@@ -24,7 +24,7 @@ Relay.prototype.find = function(startAddr, endAddr) {
         while (addrS.length < 2) {
             addrS = '0' + addrS
         }
-        commond += this.validate.crc16(addrS + '0300000001')+ ','
+        commond += this.validate.crc16(addrS + '0300010002') + ','
         addr++
     }
     console.log(startAddr)
@@ -39,8 +39,8 @@ Relay.prototype.find = function(startAddr, endAddr) {
     }
     return {
         cmd: commond.substr(0, commond.length - 1),
-        timeout:5000,
-        resolve: function(result, success, error) {
+        timeout: 5000,
+        resolve: function (result, success, error) {
             var data = result.substr(0, result.length - 4)
             var validatedata = validate.crc16(data)
             if (validatedata !== result) {
@@ -75,8 +75,7 @@ Relay.prototype.changeAddr = function (options) {
     while (options.oldAddr.length < 2) {
         options.oldAddr = '0' + options.oldAddr
     }
-
-    var commond = this.validate.crc16(options.oldAddr + '06000000' + options.shortAddress)
+    var commond = this.validate.crc16(options.oldAddr + '06001900' + options.shortAddress)
     var validate = this.validate
     var devicename = this.options.name
     var defaultCheck = this.options.defaultCheck
@@ -86,16 +85,8 @@ Relay.prototype.changeAddr = function (options) {
     }
     return {
         cmd: commond,
-        timeout:5000,
+        timeout: 5000,
         resolve: function (result, success, error) {
-            var item=result.substr(0,result.length-4);
-            if (validate.crc16(item).toLowerCase()!==result.toLowerCase()){
-                return error(401)
-            }
-            var func=item.substr(2,2);
-            if (func!=='06'){
-                return error(402)
-            }
             var json = {
                 shortAddress: options.shortAddress,
                 name: devicename + options.shortAddress,
@@ -109,7 +100,7 @@ Relay.prototype.changeAddr = function (options) {
 /**
  * 读取数据
  */
-Relay.prototype.read = function (addr, code, attribute) {
+Relay.prototype.read = function (addr, code) {
     if (code == null) code = this.checksAddress
     else if (typeof code === 'string') code = [code]
     var analysis = []
@@ -120,13 +111,27 @@ Relay.prototype.read = function (addr, code, attribute) {
     while (addr.length < 2) {
         addr = '0' + addr
     }
-    var cmd=[]
-
-
-
+    var cmd = [];
+    if (code.indexOf("1") > -1) {//测量值
+        var command1 = this.validate.crc16(addr + '0300010002');
+        cmd.push(command1)
+    }
+    if (code.indexOf("2") > -1) {//温度
+        var command2 = this.validate.crc16(addr + '0300030002');
+        cmd.push(command2)
+    }
+    if (code.indexOf("3") > -1) {//电流输出值
+        var command3 = this.validate.crc16(addr + '0300050002');
+        cmd.push(command3)
+    }
+    if (code.indexOf("4") > -1) {//测量模式
+        var command4 = this.validate.crc16(addr + '0300080001');
+        cmd.push(command4)
+    }
     var validate = this.validate
     return {
         cmd: cmd.join(','),
+        timeout: 5000,
         resolve: function (result, success, error) {
             var data = result.split(',')
             if (data.length !== cmd.length) {
@@ -134,8 +139,33 @@ Relay.prototype.read = function (addr, code, attribute) {
             }
             var res = {}
             var allChecks = {}
-            for (let i=0;i<data.length;i++){
-
+            for (let i = 0; i < data.length; i++) {
+                var item = data[i].substr(0, data[i].length - 4);
+                if (validate.crc16(item).toLowerCase() !== data[i].toLowerCase()) {
+                    return error(401);
+                }
+                var Addr = item.substr(0, 2);
+                if (Addr !== addr) {
+                    return error(402);
+                }
+                var func = item.substr(2, 2);
+                if (func !== '03') {
+                    return error(403);
+                }
+                var abcd = item.substr(10, 4) + item.substr(6, 4)
+                if (cmd[i] == command1) {//测量值
+                    allChecks['1'] = abcd
+                }
+                if (cmd[i] == command2) {//温度
+                    allChecks['2'] = abcd
+                }
+                if (cmd[i] == command3) {//电流输出值
+                    allChecks['3'] = abcd
+                }
+                if (cmd[i] == command4) {//测量模式,十六进制整数
+                    let clms=item.substr(8,4);
+                    allChecks['4'] = clms
+                }
             }
             code.forEach(function (item, index) {
                 var analyze = null
@@ -152,28 +182,34 @@ Relay.prototype.read = function (addr, code, attribute) {
 //addr为设备地址编号,code为控制节点,state为行为,字符串
 Relay.prototype.write = function (addr, code, state) {
     if (typeof addr === 'number') addr = addr.toString(16)
+    if (typeof state === 'number') state = state.toString()
     while (addr.length < 2) {
         addr = '0' + addr;
     }
-    state=parseInt(state).toString(16)
-    while (state.length<4){
-        state='0'+state
+    while (state.length < 2) {
+        state = '0' + state
     }
     var cmd = [];
+    if (code.indexOf("7") > -1) {//测量模式选择/0-PH,1-ORP
+        var commond = this.validate.crc16(addr + '060008' + state)
+        cmd.push(commond)
+    }
     var validate = this.validate;
     return {
         cmd: cmd.join(','),
         timeout: 5000,
         resolve: function (result, success, error) {
-            var item = result.substr(0, result.length - 4);
-            if (result.toLowerCase() !== validate.crc16(item).toLowerCase()) {
+            var item = result.substr(0, result.length - 4)
+            if (validate.crc16(item).toLowerCase() !== result.toLowerCase()) {
+                return error(400)
+            }
+            var Addr = item.substr(0, 2);
+            if (Addr !== addr) {
                 return error(401)
             }
-            if (item.substr(0,2)!==addr){
-                return error(402)
-            }
-            if (item.substr(2,2)!=='06'){
-                return error(403)
+            var func = item.substr(2, 2);
+            if (func !== '06') {
+                return error
             }
             success(state)
         }
