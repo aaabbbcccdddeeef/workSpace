@@ -1,0 +1,1 @@
+console.log(parseInt('25').toString(16))
