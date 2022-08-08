@@ -13,9 +13,9 @@ function Relay(options, validate) {
 }
 
 //搜索地址
-Relay.prototype.find = function(startAddr, endAddr) {
-    if (startAddr && typeof startAddr === 'string')startAddr = parseInt(startAddr)
-    if (endAddr && typeof endAddr === 'string')endAddr = parseInt(endAddr)
+Relay.prototype.find = function (startAddr, endAddr) {
+    if (startAddr && typeof startAddr === 'string') startAddr = parseInt(startAddr)
+    if (endAddr && typeof endAddr === 'string') endAddr = parseInt(endAddr)
     var addr = startAddr || this.addrmin
     var end = endAddr || this.addrmax
     var commond = ''
@@ -24,7 +24,7 @@ Relay.prototype.find = function(startAddr, endAddr) {
         while (addrS.length < 2) {
             addrS = '0' + addrS
         }
-        commond += this.validate.crc16(addrS + '0300000001')+ ','
+        commond += this.validate.crc16(addrS + '0300000001') + ','
         addr++
     }
     console.log(startAddr)
@@ -39,8 +39,8 @@ Relay.prototype.find = function(startAddr, endAddr) {
     }
     return {
         cmd: commond.substr(0, commond.length - 1),
-        timeout:5000,
-        resolve: function(result, success, error) {
+        timeout: 5000,
+        resolve: function (result, success, error) {
             var data = result.substr(0, result.length - 4)
             var validatedata = validate.crc16(data)
             if (validatedata !== result) {
@@ -86,14 +86,14 @@ Relay.prototype.changeAddr = function (options) {
     }
     return {
         cmd: commond,
-        timeout:5000,
+        timeout: 5000,
         resolve: function (result, success, error) {
-            var item=result.substr(0,result.length-4);
-            if (validate.crc16(item).toLowerCase()!==result.toLowerCase()){
+            var item = result.substr(0, result.length - 4);
+            if (validate.crc16(item).toLowerCase() !== result.toLowerCase()) {
                 return error(401)
             }
-            var func=item.substr(2,2);
-            if (func!=='06'){
+            var func = item.substr(2, 2);
+            if (func !== '06') {
                 return error(402)
             }
             var json = {
@@ -120,8 +120,7 @@ Relay.prototype.read = function (addr, code, attribute) {
     while (addr.length < 2) {
         addr = '0' + addr
     }
-    var cmd=[]
-
+    var cmd = []
 
 
     var validate = this.validate
@@ -134,7 +133,7 @@ Relay.prototype.read = function (addr, code, attribute) {
             }
             var res = {}
             var allChecks = {}
-            for (let i=0;i<data.length;i++){
+            for (let i = 0; i < data.length; i++) {
 
             }
             code.forEach(function (item, index) {
@@ -152,32 +151,34 @@ Relay.prototype.read = function (addr, code, attribute) {
 //addr为设备地址编号,code为控制节点,state为行为,字符串
 Relay.prototype.write = function (addr, code, state) {
     if (typeof addr === 'number') addr = addr.toString(16)
+    if (typeof state === 'number') state = state.toString()
     while (addr.length < 2) {
         addr = '0' + addr;
     }
-    state=parseInt(state).toString(16)
-    while (state.length<4){
-           state='0'+state
+    while (state.length < 2) {
+        state = '0' + state
     }
     var cmd = [];
+
+
     var validate = this.validate;
     return {
-           cmd: cmd.join(','),
-           timeout: 5000,
-           resolve: function (result, success, error) {
-               var item = result.substr(0, result.length - 4);
-               if (result.toLowerCase() !== validate.crc16(item).toLowerCase()) {
-                   return error(401)
-               }
-               if (item.substr(0,2)!==addr){
-                   return error(402)
-               }
-               if (item.substr(2,2)!=='06'){
-                   return error(403)
-               }
-               success(state)
-           }
-       }
+        cmd: cmd.join(','),
+        timeout: 5000,
+        resolve: function (result, success, error) {
+            var item = result.substr(0, result.length - 4);
+            if (result.toLowerCase() !== validate.crc16(item).toLowerCase()) {
+                return error(401)
+            }
+            if (item.substr(0, 2) !== addr) {
+                return error(402)
+            }
+            if (item.substr(2, 2) !== '06') {
+                return error(403)
+            }
+            success(state)
+        }
+    }
 }
 /**
  * 生成主动上报
