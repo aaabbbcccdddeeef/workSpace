@@ -126,6 +126,7 @@ Relay.prototype.read = function (addr, code, attribute) {
     var validate = this.validate
     return {
         cmd: cmd.join(','),
+        timeout:5000,
         resolve: function (result, success, error) {
             var data = result.split(',')
             if (data.length !== cmd.length) {

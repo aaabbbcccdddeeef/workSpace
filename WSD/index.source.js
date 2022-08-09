@@ -120,16 +120,17 @@ Relay.prototype.read = function (addr, code, attribute) {
     addr = '0' + addr
   }
   var cmd = []
-  var commond1
+  var commond
   //01 03 0001 0002 地址-功能码-寄存器地址-寄存器个数
   //01 03 04 0001 1004 地址-功能码-返回字节数-液位状态值-信号强度
-  if ((code.indexOf('1')>-1||code.indexOf('2')>-1)&&cmd.indexOf(commond1)<0){
-    commond1=this.validate.crc16(addr+'0300000002')
-    cmd.push(commond1)
+  if ((code.indexOf('1')>-1||code.indexOf('2')>-1)&&cmd.indexOf(commond)<0){
+    commond=this.validate.crc16(addr+'0300000002')
+    cmd.push(commond)
   }
   var validate = this.validate
   return {
     cmd: cmd.join(','),
+    timeout:5000,
     resolve: function (result, success, error) {
       var data = result.split(',')
       if (data.length !== cmd.length) {
@@ -146,7 +147,7 @@ Relay.prototype.read = function (addr, code, attribute) {
       if (result.substr(2,2)!=='03'){
         return error(403)
       }
-      if (cmd[0]==commond1){
+      if (cmd[0]==command1){
         const wd=result.substr(6,4)
         const sd=result.substr(10,4)
         allChecks['1']=wd
