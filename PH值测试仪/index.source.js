@@ -27,9 +27,9 @@ Relay.prototype.find = function (startAddr, endAddr) {
         commond += this.validate.crc16(addrS + '0300010002') + ','
         addr++
     }
-    console.log(startAddr)
-    console.log(endAddr)
-    console.log(commond)
+    // console.log(startAddr)
+    // console.log(endAddr)
+    // console.log(commond)
     var validate = this.validate
     var devicename = this.options.name
     var defaultCheck = this.options.defaultCheck
