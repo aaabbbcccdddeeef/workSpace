@@ -113,20 +113,20 @@ Relay.prototype.read = function (addr, code) {
     }
     var cmd = [];
     if (code.indexOf("1") > -1) {//测量值
-        var command1 = this.validate.crc16(addr + '0300010002');
-        cmd.push(command1)
+        var commond1 = this.validate.crc16(addr + '0300010002');
+        cmd.push(commond1)
     }
     if (code.indexOf("2") > -1) {//温度
-        var command2 = this.validate.crc16(addr + '0300030002');
-        cmd.push(command2)
+        var commond2 = this.validate.crc16(addr + '0300030002');
+        cmd.push(commond2)
     }
     if (code.indexOf("3") > -1) {//电流输出值
-        var command3 = this.validate.crc16(addr + '0300050002');
-        cmd.push(command3)
+        var commond3 = this.validate.crc16(addr + '0300050002');
+        cmd.push(commond3)
     }
     if (code.indexOf("4") > -1) {//测量模式
-        var command4 = this.validate.crc16(addr + '0300080001');
-        cmd.push(command4)
+        var commond4 = this.validate.crc16(addr + '0300080001');
+        cmd.push(commond4)
     }
     var validate = this.validate
     return {
@@ -153,16 +153,16 @@ Relay.prototype.read = function (addr, code) {
                     return error(403);
                 }
                 var abcd = item.substr(10, 4) + item.substr(6, 4)
-                if (cmd[i] == command1) {//测量值
+                if (cmd[i] == commond1) {//测量值
                     allChecks['1'] = abcd
                 }
-                if (cmd[i] == command2) {//温度
+                if (cmd[i] == commond2) {//温度
                     allChecks['2'] = abcd
                 }
-                if (cmd[i] == command3) {//电流输出值
+                if (cmd[i] == commond3) {//电流输出值
                     allChecks['3'] = abcd
                 }
-                if (cmd[i] == command4) {//测量模式,十六进制整数
+                if (cmd[i] == commond4) {//测量模式,十六进制整数
                     let clms=item.substr(8,4);
                     allChecks['4'] = clms
                 }

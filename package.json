@@ -1,0 +1,24 @@
+{
+  "name": "node_xy_test",
+  "version": "1.0.0",
+  "description": "一些RS485协议模板\r 对于通讯协议来说，各种各样的通讯模块，各种各样的标准不易于快速开发",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xu15580163750/workSpace.git"
+  },
+  "author": "xuqingf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xu15580163750/workSpace/issues"
+  },
+  "homepage": "https://github.com/xu15580163750/workSpace#readme",
+  "dependencies": {
+    "event": "^1.0.0",
+    "express": "^4.18.1",
+    "request": "^2.88.2"
+  }
+}

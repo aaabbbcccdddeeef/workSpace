@@ -11,7 +11,6 @@ function Relay(options, validate) {
         _this.checksAddress.push(test.address)
     })
 }
-
 //搜索地址
 Relay.prototype.find = function (startAddr, endAddr) {
     if (startAddr && typeof startAddr === 'string') startAddr = parseInt(startAddr)
@@ -105,33 +104,18 @@ Relay.prototype.read = function (addr, code) {
     else if (typeof code === 'string') code = [code]
     var analysis = []
     var _this = this
-    code.forEach(function (item) {
-        analysis.push(_this['analysis' + item])
-    })
     while (addr.length < 2) {
         addr = '0' + addr
     }
     var cmd = [];
-    if (code.indexOf("1") > -1) {//电导率值
-        var command1 = this.validate.crc16(addr + '0300000002');
-        cmd.push(command1)
-    }
-    if (code.indexOf("2") > -1) {//电阻率值
-        var command2 = this.validate.crc16(addr + '0300020002');
-        cmd.push(command2)
-    }
-    if (code.indexOf("3") > -1) {//温度值
-        var command3 = this.validate.crc16(addr + '0300040002');
-        cmd.push(command3)
-    }
-    if (code.indexOf("4") > -1) {//TDS值
-        var command4 = this.validate.crc16(addr + '0300060002');
-        cmd.push(command4)
-    }
-    if (code.indexOf("5") > -1) {//盐度值
-        var command5 = this.validate.crc16(addr + '0300080002');
-        cmd.push(command5)
-    }
+    var commond1 = this.validate.crc16(addr + '030000000A');
+    //电导率值/电阻率值/温度值/TDS值/盐度值
+    code.forEach(function(item) {
+        analysis.push(_this['analysis' + item])
+        if ((item === '1' || item === '2' || item === '3' || item === '4' || item === '5') && cmd.indexOf(commond1) < 0) {
+            cmd.push(commond1)
+        }
+    })
     var validate = this.validate
     return {
         cmd: cmd.join(','),
@@ -143,6 +127,10 @@ Relay.prototype.read = function (addr, code) {
             }
             var res = {}
             var allChecks = {}
+            function restr(str) {
+                let str1 = str.substr(4, 4) + str.substr(0, 4)
+                return str1
+            }
             for (let i = 0; i < data.length; i++) {
                 var item = data[i].substr(0, data[i].length - 4);
                 if (validate.crc16(item).toLowerCase() !== data[i].toLowerCase()) {
@@ -156,25 +144,12 @@ Relay.prototype.read = function (addr, code) {
                 if (func !== '03') {
                     return error(403);
                 }
-                var len = item.substr(4, 2);
-                if (len !== '04') {
-                    return error(404)
-                }
-                var abcd = item.substr(10, 4) + item.substr(6, 4)
-                if (cmd[i] == command1) {//电导率值
-                    allChecks['1'] = abcd
-                }
-                if (cmd[i] == command2) {//电阻率值
-                    allChecks['2'] = abcd
-                }
-                if (cmd[i] == command3) {//温度值
-                    allChecks['3'] = abcd
-                }
-                if (cmd[i] == command4) {//TDS值
-                    allChecks['4'] = abcd
-                }
-                if (cmd[i] == command5) {//盐度值
-                    allChecks['5'] = abcd
+                if (cmd[i] == commond1) {
+                    allChecks['1'] = restr(item.substr(6,8)) //电导率值
+                    allChecks['2'] = restr(item.substr(14,8)) //电阻率值
+                    allChecks['3'] = restr(item.substr(22,8)) //温度值
+                    allChecks['4'] = restr(item.substr(30,8)) //TDS值
+                    allChecks['5'] = restr(item.substr(38,8)) //盐度值
                 }
             }
             code.forEach(function (item, index) {
@@ -262,11 +237,21 @@ Relay.prototype.write = function (addr, code, state) {
         addr = '0' + addr;
     }
     var cmd = [];
-    state = toHexFloat(state);
-    state=state.substr(4,4)+state.substr(0,4)
     if (code.indexOf("7") > -1) {//电导率常数设置
+        state = toHexFloat(state);
+        state=state.substr(4,4)+state.substr(0,4)
         var commond = this.validate.crc16(addr + '10000A000204' + state)
         cmd.push(commond)
+    }
+    if (code.indexOf('8')>-1){//0.1,0.01
+        state=state=='1'?'cccc3dcc':'D70A3C23'
+        var commond1 = this.validate.crc16(addr + '10000A000204' + state)
+        cmd.push(commond1)
+    }
+    if (code.indexOf('9')>-1){//0.07,0.08
+        state=state=='1'?'5C283D8F':' D70A3DA3'
+        var commond2 = this.validate.crc16(addr + '10000A000204' + state)
+        cmd.push(commond2)
     }
     var validate = this.validate;
     return {
@@ -300,13 +285,11 @@ Relay.prototype.write = function (addr, code, state) {
  * port 串口配置
  */
 Relay.prototype.encode = function (addr, parameters, port) {
-
 }
 /**
  * 简析主动上报指令，并且生成一个数组
  */
 Relay.prototype.decode = function (result) {
-
 }
 Relay.prototype.navi = function (result) {
     if (result) {
@@ -315,5 +298,4 @@ Relay.prototype.navi = function (result) {
     }
     return null
 }
-
 module.exports = Relay

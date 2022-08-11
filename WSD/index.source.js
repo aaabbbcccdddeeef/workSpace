@@ -67,43 +67,7 @@ Relay.prototype.find = function (startAddr, endAddr) {
  * 回调 【addr】  返回
  */
 Relay.prototype.changeAddr = function (options) {
-  if (typeof options.shortAddress === 'number') options.shortAddress = options.shortAddress.toString(16)
-  while (options.shortAddress.length < 2) {
-    options.shortAddress = '0' + options.shortAddress
-  }
-  if (typeof options.oldAddr === 'number') options.oldAddr = options.oldAddr.toString(16)
-  while (options.oldAddr.length < 2) {
-    options.oldAddr = '0' + options.oldAddr
-  }
-  var commond = this.validate.crc16(options.oldAddr + '06000400' + options.shortAddress)
-  var validate = this.validate
-  var devicename = this.options.name
-  var defaultCheck = this.options.defaultCheck
-  var attribute = []
-  if (this.options.attribute !== undefined) {
-    attribute = this.options.attribute
-  }
-  return {
-    cmd: commond,
-    timeout: 5000,
-    resolve: function (result, success, error) {
-      var item = result.substr(0, result.length - 4);
-      if (validate.crc16(item).toLowerCase() !== result.toLowerCase()) {
-        return error(401)
-      }
-      var func = item.substr(2, 2);
-      if (func !== '06') {
-        return error(402)
-      }
-      var json = {
-        shortAddress: options.shortAddress,
-        name: devicename + options.shortAddress,
-        checks: defaultCheck,
-        attribute: attribute
-      }
-      return success(json)
-    }
-  }
+
 }
 /**
  * 读取数据
@@ -121,8 +85,6 @@ Relay.prototype.read = function (addr, code, attribute) {
   }
   var cmd = []
   var commond
-  //01 03 0001 0002 地址-功能码-寄存器地址-寄存器个数
-  //01 03 04 0001 1004 地址-功能码-返回字节数-液位状态值-信号强度
   if ((code.indexOf('1')>-1||code.indexOf('2')>-1)&&cmd.indexOf(commond)<0){
     commond=this.validate.crc16(addr+'0300000002')
     cmd.push(commond)
@@ -147,7 +109,7 @@ Relay.prototype.read = function (addr, code, attribute) {
       if (result.substr(2,2)!=='03'){
         return error(403)
       }
-      if (cmd[0]==command1){
+      if (cmd[0]==commond){
         const wd=result.substr(6,4)
         const sd=result.substr(10,4)
         allChecks['1']=wd

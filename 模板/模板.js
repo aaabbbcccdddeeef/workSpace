@@ -114,14 +114,14 @@ Relay.prototype.read = function (addr, code, attribute) {
     else if (typeof code === 'string') code = [code]
     var analysis = []
     var _this = this
-    code.forEach(function (item) {
-        analysis.push(_this['analysis' + item])
-    })
     while (addr.length < 2) {
         addr = '0' + addr
     }
     var cmd = []
+    code.forEach(function (item) {
+        analysis.push(_this['analysis' + item])
 
+    })
 
     var validate = this.validate
     return {
@@ -135,6 +135,7 @@ Relay.prototype.read = function (addr, code, attribute) {
             var res = {}
             var allChecks = {}
             for (let i = 0; i < data.length; i++) {
+
 
             }
             code.forEach(function (item, index) {

@@ -4,12 +4,15 @@
 // console.log(parseInt('0032')*0.1)
 // var aa=a=>a=5 //箭头函数,一个参数简写方式，默认返回这个参数
 // console.log(aa())
-var sta='{\n' +
-    '    "v":1323,\n' +
-    '    "esq":12\n' +
-    '}'
-var obj=JSON.parse(sta)
-console.log(obj)
-obj['124']=obj['v']
-console.log(obj)
-console.log(obj['v'])
+// var sta='{\n' +
+//     '    "v":1323,\n' +
+//     '    "esq":12\n' +
+//     '}'
+// var obj=JSON.parse(sta)
+// console.log(obj)
+// obj['124']=obj['v']
+// console.log(obj)
+// console.log(obj['v'])
+var obj={"1":1,"2":2}
+var arr=Object.keys(obj).map(value =>value*2).filter(value => value>2)
+console.log(arr[0])

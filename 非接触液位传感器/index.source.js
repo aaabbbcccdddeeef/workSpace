@@ -113,20 +113,19 @@ Relay.prototype.read = function (addr, code, attribute) {
     else if (typeof code === 'string') code = [code]
     var analysis = []
     var _this = this
-    code.forEach(function (item) {
-        analysis.push(_this['analysis' + item])
-    })
     while (addr.length < 2) {
         addr = '0' + addr
     }
     var cmd = []
-    var commond
+    var commond=this.validate.crc16(addr+'0300010002')
+    code.forEach(function (item) {
+        analysis.push(_this['analysis' + item])
+        if ((item.indexOf('1')>-1||item.indexOf('2')>-1)&&cmd.indexOf(commond)<0){
+            cmd.push(commond)
+        }
+    })
     //01 03 0001 0002 地址-功能码-寄存器地址-寄存器个数
     //01 03 04 0001 1004 地址-功能码-返回字节数-液位状态值-信号强度
-    if ((code.indexOf('1')>-1||code.indexOf('2')>-1)&&cmd.indexOf(commond)<0){
-        commond=this.validate.crc16(addr+'0300010002')
-        cmd.push(commond)
-    }
     var validate = this.validate
     return {
         cmd: cmd.join(','),
@@ -141,7 +140,7 @@ Relay.prototype.read = function (addr, code, attribute) {
             if (result.substr(0,2)!==addr){
                 return error(401)
             }
-            if (validate.crc16(result.substr(0,result.length-4).toLowerCase()!==result.toLowerCase())){
+            if (validate.crc16(result.substr(0,result.length-4).toLowerCase())!==result.toLowerCase()){
                 return error(402)
             }
             if (result.substr(2,2)!=='03'){
