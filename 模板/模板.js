@@ -6,9 +6,12 @@ function Relay(options, validate) {
     this.options = options // options.defaulttest  options.defaultbutton
     var _this = this
     _this.checksAddress = []
-    options.defaultCheck.forEach(function (test) {
-        _this['analysis' + test.address] = test.analysis// test.analysis 解析函数
+    options.defaultCheck.forEach(function(test) {
+        _this['analysis' + test.address] = test.analysis// 读功能 analysis 解析函数
         _this.checksAddress.push(test.address)
+    })
+    options.defaultOperate.forEach(function(test) {
+        _this['analysis' + test.address] = test.analysis// 写功能 analysis 解析函数
     })
 }
 
@@ -203,7 +206,7 @@ Relay.prototype.decode = function (result) {
 }
 Relay.prototype.navi = function (result) {
     if (result) {
-        const ret = result.substr(0, 2)
+        const ret = result.substr(0, 2) //返回对应地址
         return ret
     }
     return null
