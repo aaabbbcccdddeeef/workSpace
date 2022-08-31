@@ -125,7 +125,6 @@ Relay.prototype.read = function (addr, code, attribute) {
         analysis.push(_this['analysis' + item])
 
     })
-
     var validate = this.validate
     return {
         cmd: cmd.join(','),
@@ -152,7 +151,12 @@ Relay.prototype.read = function (addr, code, attribute) {
         }
     }
 }
-// 写入
+/**
+ * 写操作
+ * @param addr
+ * @param options  shortAddress value, oldValue
+ * @return {{cmd: string, resolve: resolve}}
+ */
 //addr为设备地址编号,code为控制节点,state为行为,字符串
 Relay.prototype.write = function (addr, code, state) {
     if (typeof addr === 'number') addr = addr.toString(16)
